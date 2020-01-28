@@ -1,6 +1,20 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 
-const App = () => <p>Hi</p>
+const MyContext = React.createContext();
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const App = () => {
+    return(
+        <MyContext.Provider value='How low'>
+            <Child />
+        </MyContext.Provider>
+    );
+}
+
+const Child = () => {
+    const value = useContext(MyContext);
+
+    return <h1>{value}</h1>;
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));  
