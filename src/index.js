@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 
 const App = () => {
-    const [value, setValue] = useState(0);
+    const [value, setValue] = useState(1);
     const [visible, setVisible] = useState(true);
 
     if(visible){
@@ -10,7 +10,7 @@ const App = () => {
             <div style={{fontSize: '25px'}}>
                 <button onClick={() => setValue((v) => v + 1)}>+</button>
                 <button onClick={() => setVisible(false)}>hide</button>
-                <Notification />
+                <PlanetInfo planetId={value} />
             </div>
         );
     } else{
@@ -20,6 +20,40 @@ const App = () => {
             </div>
         );
     }  
+}
+
+const PlanetInfo = ({planetId}) => {
+
+    const [planetInfo, setPlanetInfo] = useState({
+        id: planetId,
+        name: null
+    });
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`https://swapi.co/api/planets/${planetId}`)
+            .then(res => res.json())
+            .then(data => {
+                !cancelled && setPlanetInfo({
+                    id: planetId,
+                    name: data.name
+                });
+            });
+        return (() => cancelled = true);
+    }, [planetId]);
+
+    const {id, name} = planetInfo;
+
+    if (!name) {
+        return null;
+    }
+    return (
+        <>
+            <div>
+                {id} Planet name is {name}
+            </div>
+        </>
+    )
 }
 
 const HookCounter = ({value}) => {
