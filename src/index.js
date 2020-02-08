@@ -22,8 +22,8 @@ const App = () => {
     }  
 }
 
-const PlanetInfo = ({planetId}) => {
-
+const usePlanetInfo = (planetId) => {
+    
     const [planetInfo, setPlanetInfo] = useState({
         id: planetId,
         name: null
@@ -42,7 +42,12 @@ const PlanetInfo = ({planetId}) => {
         return (() => cancelled = true);
     }, [planetId]);
 
-    const {id, name} = planetInfo;
+    return planetInfo;
+}
+
+const PlanetInfo = ({planetId}) => {
+
+    const {id, name} = usePlanetInfo(planetId);
 
     if (!name) {
         return null;
