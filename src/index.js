@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import ReactDOM from 'react-dom';
 
 const App = () => {
@@ -10,7 +10,7 @@ const App = () => {
             <div style={{fontSize: '25px'}}>
                 <button onClick={() => setValue((v) => v + 1)}>+</button>
                 <button onClick={() => setVisible(false)}>hide</button>
-                <PlanetInfo planetId={value} />
+                <PlanetInfo id={value} />
             </div>
         );
     } else{
@@ -22,40 +22,58 @@ const App = () => {
     }  
 }
 
-const usePlanetInfo = (planetId) => {
-    
-    const [planetInfo, setPlanetInfo] = useState({
-        id: planetId,
-        name: null
-    });
-
-    useEffect(() => {
-        let cancelled = false;
-        fetch(`https://swapi.co/api/planets/${planetId}`)
-            .then(res => res.json())
-            .then(data => {
-                !cancelled && setPlanetInfo({
-                    id: planetId,
-                    name: data.name
-                });
-            });
-        return (() => cancelled = true);
-    }, [planetId]);
-
-    return planetInfo;
+const getPlanet = (id) => {
+    return fetch(`https://swapi.co/api/planets/${id}`)
+            .then(res => res.json());
 }
 
-const PlanetInfo = ({planetId}) => {
+const useRequest = (request) => {
+    const initialState = useMemo(() => ({
+        data: null,
+        loading: true,
+        error: null
+    }), []);
 
-    const {id, name} = usePlanetInfo(planetId);
+    const [dataState, setDataState] = useState(initialState);
+    useEffect(() => {
+        setDataState(initialState);
+        let cancelled = false;
+        request()
+            .then(data => !cancelled && setDataState({
+                data,
+                loading: false,
+                error: null
+            }))
+            .catch(error => !cancelled && setDataState({
+                data: null,
+                loading: false,
+                error
+            }))
+        return () => cancelled = true;
+    }, [request, initialState]);
+    return dataState;
+}
 
-    if (!name) {
-        return null;
+const usePlanetInfo = (id) => {
+    const request = useCallback(() => getPlanet(id), [id]);
+    return useRequest(request);
+}
+
+const PlanetInfo = ({id}) => {
+    const {data, loading, error} = usePlanetInfo(id);
+
+    if (error) {
+        return <div>Something is wrong</div>
     }
+
+    if (loading) {
+        return <div> loading...</div>
+    }
+
     return (
         <>
             <div>
-                {id} Planet name is {name}
+                {id} Planet name is {data.name}
             </div>
         </>
     )
